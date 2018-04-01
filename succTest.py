@@ -5,7 +5,10 @@ import plotly as py
 from plotly.graph_objs import *
 
 # open data
-liste = dex.openBoxFile('VID_20180304_131842.dat')
+#liste = dex.openBoxFile('VID_20180304_131842.dat')
+#liste = dex.openBoxFile('VID_20180304_125923.dat')
+
+liste = dex.openBoxFile('VID_20180304_132027.dat')
 
 # list of boxes to list of images with list of boxes
 liste = dex.predictOutputToList(liste)
@@ -14,7 +17,7 @@ liste = dex.predictOutputToList(liste)
 liste = dex.cleanListFromOverlappingBoxes(liste)
 
 # add false to all because they are not predicted, and None because hey are not part of a chain
-liste = dex.addValue_8_and_9_ToBox(liste)
+#liste = dex.addValue_8_and_9_ToBox(liste)
 
 # delet all Boxes which are not in the center of the image
 liste = dex.deleteNotCentredBoxes(liste)
@@ -89,4 +92,4 @@ print(disl)
 dexDraw.plot(disl)
 
 # display all images and save them
-dexDraw.drawBoxesAndSaveIn4Threads(liste)
+#dexDraw.drawBoxesAndSaveIn4Threads(liste)

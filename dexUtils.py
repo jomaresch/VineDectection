@@ -73,6 +73,8 @@ import itertools
 #     return image
 
 def get_overlap(bb1, bb2):
+    print (bb1)
+    print (bb2)
     assert bb1[4] < bb1[5]
     assert bb1[6] < bb1[7]
     assert bb2[4] < bb2[5]
