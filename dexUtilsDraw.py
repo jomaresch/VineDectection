@@ -11,13 +11,21 @@ import itertools
 import plotly as py
 from plotly.graph_objs import *
 
-def draw_box(box_list):
+def drawVerticalLines(image):
+    width, height = image.size
+    draw = ImageDraw.Draw(image)
+    draw.line((width * 0.4, 0, width * 0.4, height), fill=(0, 0, 0), width=6)
+    draw.line((width * 0.6, 0, width * 0.6, height), fill=(0, 0, 0), width=6)
+    draw.line((int(width * 0.5), 0, int(width * 0.5), height), fill=(0, 0, 0), width=6)
+    return image
+
+def draw_box(box_list, folder):
     color_bar = (244, 100, 100)
     color_wine = (104, 249, 255)
     color_predicted = (57, 83, 186)
 
     image_path = box_list[0][0]
-    image = Image.open('images/'+image_path)
+    image = Image.open('images/'+folder+'/'+image_path)
     draw = ImageDraw.Draw(image)
     for box in box_list:
         if box[3] == 'bar':
@@ -71,23 +79,23 @@ def draw_box2(image,box_list):
         draw.line((box[5], box[6], box[5], box[7]), fill=color, width=6)
     return image
 
-def drawBoxesAndSave(list):
+def drawBoxesAndSave(list, folder):
     for image in list:
         print(image)
-        draw_box(image).save('imagesnew/' + image[0][0])
+        drawVerticalLines(draw_box(image, folder)).save('imagesnew/' + image[0][0])
 
-def drawBoxesAndSaveIn4Threads(list):
+def drawBoxesAndSaveIn4Threads(list, folder):
     length = len(list)
     half = int(length/2)
     quarter = int(half/2)
     print("Thread 1 started")
-    t1 = Thread(target=drawBoxesAndSave, args=(list[:quarter],))
+    t1 = Thread(target=drawBoxesAndSave, args=(list[:quarter],folder))
     print("Thread 2 started")
-    t2 = Thread(target=drawBoxesAndSave, args=(list[quarter:half],))
+    t2 = Thread(target=drawBoxesAndSave, args=(list[quarter:half],folder))
     print("Thread 3 started")
-    t3 = Thread(target=drawBoxesAndSave, args=(list[half+1:half+quarter],))
+    t3 = Thread(target=drawBoxesAndSave, args=(list[half+1:half+quarter],folder))
     print("Thread 4 started")
-    t4 = Thread(target=drawBoxesAndSave, args=(list[half+quarter+1:],))
+    t4 = Thread(target=drawBoxesAndSave, args=(list[half+quarter+1:],folder))
     t1.start()
     t2.start()
     t3.start()
@@ -96,6 +104,7 @@ def drawBoxesAndSaveIn4Threads(list):
     t2.join()
     t3.join()
     t4.join()
+
 
 def plot(points):
     Xn = []
@@ -135,3 +144,4 @@ def plot(points):
     data = Data([trace2])
 
     py.offline.plot(Figure(data=data))
+

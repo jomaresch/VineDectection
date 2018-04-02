@@ -7,11 +7,20 @@ from plotly.graph_objs import *
 # open data
 #liste = dex.openBoxFile('VID_20180304_131842.dat')
 #liste = dex.openBoxFile('VID_20180304_125923.dat')
+#liste = dex.openBoxFile('VID_20180304_132027.dat')
+liste = dex.openBoxFile('FHD_JPG_VID_20180304_132027.dat')
+#liste = dex.openBoxFile('FHD_JPG_VID_20180304_131842.dat')
+#liste = dex.openBoxFile('FHD_JPG_VID_20180304_125923.dat')
 
-liste = dex.openBoxFile('VID_20180304_132027.dat')
+#IMAGE_FOLDER = "Frames_VID_20180304_131842"
+IMAGE_FOLDER = "Frames_VID_20180304_132027"
+#IMAGE_FOLDER = "Frames_VID_20180304_125923"
+
 
 # list of boxes to list of images with list of boxes
 liste = dex.predictOutputToList(liste)
+
+liste = dex.dropBoxesWithLowConfidence(liste,0.4)
 
 # clean from overlapping
 liste = dex.cleanListFromOverlappingBoxes(liste)
@@ -91,5 +100,9 @@ print(disl)
 # plot all points
 dexDraw.plot(disl)
 
+
 # display all images and save them
-#dexDraw.drawBoxesAndSaveIn4Threads(liste)
+dexDraw.drawBoxesAndSaveIn4Threads(liste, IMAGE_FOLDER)
+
+print()
+print(dex.countItems(liste))

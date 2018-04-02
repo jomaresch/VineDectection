@@ -73,8 +73,6 @@ import itertools
 #     return image
 
 def get_overlap(bb1, bb2):
-    print (bb1)
-    print (bb2)
     assert bb1[4] < bb1[5]
     assert bb1[6] < bb1[7]
     assert bb2[4] < bb2[5]
@@ -100,6 +98,11 @@ def get_overlap(bb1, bb2):
 
     return iou
 
+def dropBoxesWithLowConfidence(list, confidence):
+    newlist = []
+    for image in list:
+        newlist.append([x for x in image if x[10] >= confidence])
+    return newlist
 
 def openBoxFile(name):
     with open("imageData/"+name, 'rb') as fp:
@@ -467,6 +470,27 @@ def removeElementsFromList(list, elements):
         list = dropBox(list, box)
     return list
 
+def isBoxInArea(box):
+    threshold = int(box[1] * 0.5)
+    return box[4] < threshold < box[5]
+
+
+def countItems(list):
+    boxcount = 0
+    prevCount = 0
+    finalCount = 0
+    for image in list:
+        for box in image:
+            if isBoxInArea(box):
+                boxcount += 1
+        if(boxcount - prevCount >= 0):
+            finalCount += boxcount - prevCount
+
+        prevCount = boxcount
+        boxcount = 0
+    return finalCount
+
+
 # def drawBoxesAndSave(list):
 #     for image in list:
 #         print(image)
@@ -584,7 +608,7 @@ def getObjectWithMinXPositionAndAValue(dis,image1):
 
 def getDisList(list):
     dislist =[]
-    for i in range(30):
+    for i in range(40):
         dislist.append([])
 
     dislist[getObjectWithMinXPosition(list[0])[9]].append(0)
@@ -595,6 +619,7 @@ def getDisList(list):
         first = getObjectWithMinXPositionAndAValue(dislist, image)
         firstPos = sum(dislist[first[9]]) / len(dislist[first[9]])
         for box in image:
+            print(box)
             if (first == box):
                 continue
             dis_to_box = meanXDistanceWithoutAbs(first,box)
@@ -633,6 +658,7 @@ def addAttributesToDisList(dislist, list):
 #       7   ymax
 #       8   isBoxPredicted?
 #       9   ItemID
+#       10  confidence
 
 
 class Box:
