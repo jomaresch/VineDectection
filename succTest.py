@@ -98,11 +98,40 @@ disl.sort(key=lambda x: x[0])
 print(disl)
 
 # plot all points
-dexDraw.plot(disl)
+#dexDraw.plot(disl)
 
 
 # display all images and save them
-dexDraw.drawBoxesAndSaveIn4Threads(liste, IMAGE_FOLDER)
+#dexDraw.drawBoxesAndSaveIn4Threads(liste, IMAGE_FOLDER)
 
 print()
 print(dex.countItems(liste))
+print(dex.countInDisList(disl))
+
+q25,q75, wineList = dex.getQuartiles(disl)
+dif = q75 - q25
+lowerThreshold= q25 - 1.5*dif
+upperThreshold= q75 + 1.5*dif
+
+print(lowerThreshold)
+print(upperThreshold)
+print(wineList)
+
+wineList = list(filter(lambda x: x[2] < lowerThreshold, wineList))
+print(wineList)
+
+for item in wineList:
+    for i in disl:
+        if i[2] == item[0]:
+            firstItem = i
+        if i[2] == item[1]:
+            secondItem = i
+    newPos = int((firstItem[0]+secondItem[0])/2)
+    disl.remove(firstItem)
+    disl.remove(secondItem)
+    newItem = [newPos, "wine",firstItem[2]]
+    print(newItem)
+    disl.append(newItem)
+
+disl.sort(key=lambda x: x[0])
+dexDraw.plotLines(disl,15,dexDraw.plot(disl))

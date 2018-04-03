@@ -341,7 +341,7 @@ def getSuccessorElement(element, list, index):
     distances =[]
     boxes = []
     for box in nextImage:
-        if(box[3] == element[3]):
+        if(box[3] == element[3] and box[9] is None):
             distances.append(meanXDistance(box, element))
             overlaps.append(get_overlap(box,element))
             boxes.append(box)
@@ -472,23 +472,74 @@ def removeElementsFromList(list, elements):
 
 def isBoxInArea(box):
     threshold = int(box[1] * 0.5)
-    return box[4] < threshold < box[5]
+    return box[4] < threshold < box[5], box[3]
 
+def getBoxLowerArea(image):
+    threshold = int(image[0][1] * 0.5)
+    bars  = 0
+    wines = 0
+    for box in image:
+        if(box[5] < threshold):
+            if(box[3] == "wine"):
+                wines += 1
+            if (box[3] == "bar"):
+                bars += 1
+    return wines,bars
+
+def getBoxUpperArea(image):
+    threshold = int(image[0][1] * 0.5)
+    bars  = 0
+    wines = 0
+    for box in image:
+        if(box[4] > threshold):
+            if(box[3] == "wine"):
+                wines += 1
+            if (box[3] == "bar"):
+                bars += 1
+    return wines,bars
 
 def countItems(list):
-    boxcount = 0
-    prevCount = 0
-    finalCount = 0
-    for image in list:
+    wineCount = 0
+    prevWineCount = 0
+    barCount = 0
+    prevBarCount = 0
+    finalWineCount = 0
+    finalBarCount = 0
+    for index, image in enumerate(list):
+        if index == 0:
+            finalWineCount += getBoxLowerArea(image)[0]
+            finalBarCount += getBoxLowerArea(image)[1]
+        if index == len(list)-1:
+            finalWineCount += getBoxUpperArea(image)[0]
+            finalBarCount += getBoxUpperArea(image)[1]
         for box in image:
-            if isBoxInArea(box):
-                boxcount += 1
-        if(boxcount - prevCount >= 0):
-            finalCount += boxcount - prevCount
+            v1,v2 = isBoxInArea(box)
+            if v1:
+                if v2 == "wine":
+                    wineCount += 1
+                if v2 == "bar":
+                    barCount += 1
+        if(wineCount - prevWineCount >= 0):
+            finalWineCount += wineCount - prevWineCount
+        if (barCount - prevBarCount >= 0):
+            finalBarCount += barCount - prevBarCount
 
-        prevCount = boxcount
-        boxcount = 0
-    return finalCount
+        prevWineCount = wineCount
+        prevBarCount = barCount
+        wineCount = 0
+        barCount = 0
+
+    return finalWineCount, finalBarCount
+
+def countInDisList(list):
+    finalWineCount = 0
+    finalBarCount = 0
+    for item in list:
+        if (item[1] == "wine"):
+            finalWineCount += 1
+        if (item[1] == "bar"):
+            finalBarCount += 1
+    return finalWineCount, finalBarCount
 
 
 # def drawBoxesAndSave(list):
@@ -573,7 +624,6 @@ def buildPositionList(list,counter):
             if(index is not None):
                 pos[i] = pos[i-1] + list[index][2]
                 del list[index]
-    printList(list)
     return pos
 
 def getPositionListIndex(list, v1, v2):
@@ -619,7 +669,6 @@ def getDisList(list):
         first = getObjectWithMinXPositionAndAValue(dislist, image)
         firstPos = sum(dislist[first[9]]) / len(dislist[first[9]])
         for box in image:
-            print(box)
             if (first == box):
                 continue
             dis_to_box = meanXDistanceWithoutAbs(first,box)
@@ -648,6 +697,17 @@ def addAttributesToDisList(dislist, list):
     for i, dis in enumerate(dislist):
         returnList.append([dis, getLabelById(i,list), i])
     return returnList
+
+def getQuartiles(list1):
+    list2 = []
+    list1 = list(filter(lambda x: x[1] == "wine", list1))
+    for index, item, in enumerate(list1):
+        if (index < (len(list1)-1)):
+            list2.append([item[2],list1[index+1][2],list1[index+1][0]-item[0]])
+    return np.percentile(np.array([x[2] for x in list2]), 25), np.percentile(np.array([x[2] for x in list2]), 75) ,list2
+
+def eliminateOutliers(lowerThreshold, list1):
+    list1 = list(filter(lambda x: x[1] == "wine", list1))
 #       0   filename
 #       1   width
 #       2   height

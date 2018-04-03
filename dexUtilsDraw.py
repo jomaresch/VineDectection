@@ -124,7 +124,7 @@ def plot(points):
             colors.append(1)
         names.append(str(point[2]) + "---" + str(point[0]) + " " + point[1])
 
-    colorScale = [[0, 'rgb(0,0,255)'], [1, 'rgb(255,0,0)']]
+    colorScale = [[0, 'rgb(0,0,255)'], [1, 'rgb(0, 0, 0)']]
 
     trace2 = Scatter3d(
         x=Xn,
@@ -141,7 +141,30 @@ def plot(points):
         text=names,
         hoverinfo='text')
 
-    data = Data([trace2])
+    return trace2
 
+def plotLines(points, threshold, dots):
+    points = list(filter(lambda x: x[1] == "wine", points))
+    traces = []
+    for i, point in enumerate(points):
+        if (i == (len(points)-1)):
+            break
+        if(i==10 or i == 15):
+            traces.append(Scatter3d(
+                x=[0,0],
+                y=[point[0], points[i+1][0]],
+                z=[0,0],
+                mode='lines',
+                name='difs',
+                line= dict(color = ('rgb(255, 0, 0)'),width = 5,)))
+        else:
+            traces.append(Scatter3d(
+                x=[0, 0],
+                y=[point[0], points[i + 1][0]],
+                z=[0, 0],
+                mode='lines',
+                name='difs',
+                line=dict(color=('rgb(0,0,255)'), width=5, )))
+    traces.append(dots)
+    data = Data(traces)
     py.offline.plot(Figure(data=data))
-
