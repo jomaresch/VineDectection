@@ -106,30 +106,33 @@ def drawBoxesAndSaveIn4Threads(list, folder):
     t4.join()
 
 
-def plot(points):
-    Xn = []
-    Yn = []
-    Zn = []
+def get_plot_trace_for_positions(points):
+    xn = []
+    yn = []
+    zn = []
     colors = []
     names = []
 
     points.sort(key=lambda x: x[0])
     for i, point in enumerate(points):
-        Xn.append(0)
-        Yn.append(point[0])
-        Zn.append(0)
+        xn.append(0)
+        yn.append(point[0])
+        zn.append(0)
         if (point[1] == "wine"):
             colors.append(0)
         if (point[1] == "bar"):
             colors.append(1)
-        names.append(str(point[2]) + "---" + str(point[0]) + " " + point[1])
+        names.append(
+            "Item ID:   " + str(point[2]) + "<br>"
+            "Position:  " + str(point[0]) + "<br>" 
+            "Class:     " + str(point[1]))
 
-    colorScale = [[0, 'rgb(0,0,255)'], [1, 'rgb(0, 0, 0)']]
+    colorScale = [[0, 'rgb(6, 214, 106)'], [1, 'rgb(31,69,102)']]
 
     trace2 = Scatter3d(
-        x=Xn,
-        y=Yn,
-        z=Zn,
+        x=xn,
+        y=yn,
+        z=zn,
         mode='markers',
         name='actors',
         marker=Marker(
@@ -143,20 +146,23 @@ def plot(points):
 
     return trace2
 
-def plotLines(points, threshold, dots):
+
+def get_plot_traces_for_outlier(points, outliers, trace_dots):
     points = list(filter(lambda x: x[1] == "wine", points))
+    first_element_of_outlier_tupel = list(map(lambda x: x[0], outliers))
     traces = []
     for i, point in enumerate(points):
         if (i == (len(points)-1)):
             break
-        if(i==10 or i == 15):
+        if i in first_element_of_outlier_tupel:
             traces.append(Scatter3d(
                 x=[0,0],
                 y=[point[0], points[i+1][0]],
                 z=[0,0],
                 mode='lines',
                 name='difs',
-                line= dict(color = ('rgb(255, 0, 0)'),width = 5,)))
+                hoverinfo='none',
+                line= dict(color = ('rgb(237, 72, 85)'),width = 5,)))
         else:
             traces.append(Scatter3d(
                 x=[0, 0],
@@ -164,7 +170,12 @@ def plotLines(points, threshold, dots):
                 z=[0, 0],
                 mode='lines',
                 name='difs',
-                line=dict(color=('rgb(0,0,255)'), width=5, )))
-    traces.append(dots)
-    data = Data(traces)
+                hoverinfo='none',
+                line=dict(color=('rgb(6, 214, 106)'), width=5, )))
+    traces.append(trace_dots)
+    return traces
+
+
+def plot_traces(trace_list):
+    data = Data(trace_list)
     py.offline.plot(Figure(data=data))

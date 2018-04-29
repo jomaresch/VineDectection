@@ -1,10 +1,10 @@
 import dexUtils as dex
 import copy
-liste = dex.openBoxFile('LG_G6_20180210_144208_saved_boxes.dat')
+liste = dex.open_box_file('LG_G6_20180210_144208_saved_boxes.dat')
 
-liste = dex.predictOutputToList(liste)
+liste = dex.sort_and_group_list(liste)
 
-liste = dex.cleanListFromOverlappingBoxes(liste)
+liste = dex.clean_list_from_overlapping_boxes(liste)
 liste2 = []
 for image in liste:
     image_new =[]
@@ -120,7 +120,7 @@ liste = liste2
 
 # liste = dex.cleanListFromOverlappingBoxes(liste)
 
-liste = dex.deleteNotCentredBoxes(liste)
+liste = dex.delete_not_centred_boxes(liste)
 matches = dex.createMatchList(liste)
 # for image in liste:
 #     dex.draw_box(image).save('imagesnew/' + image[0][0])
@@ -141,7 +141,7 @@ for i , image in enumerate(liste):
     if i == 0:
         succz = liste[0][0]
 
-    t = dex.getSuccessorElement(succz ,liste[i+1])
+    t = dex.get_successor_element(succz, liste[i + 1])
     if not t:
         break
 
@@ -149,10 +149,10 @@ for i , image in enumerate(liste):
     print(t)
     succz = t
 
-print(dex.meanXDistanceList(XX))
+print(dex.mean_x_movement_in_chain(XX))
 
 print(XX[-1])
 
-print(dex.getImageIndex(XX[-1], liste))
+print(dex.get_image_index(XX[-1], liste))
 #print(dex.getSuccessorElement(liste[0][0], liste[1]))
 

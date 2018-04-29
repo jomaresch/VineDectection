@@ -1,137 +1,129 @@
 import dexUtils as dex
 import dexUtilsDraw as dexDraw
-import time
-import plotly as py
-from plotly.graph_objs import *
 
-# open data
-#liste = dex.openBoxFile('VID_20180304_131842.dat')
-#liste = dex.openBoxFile('VID_20180304_125923.dat')
-#liste = dex.openBoxFile('VID_20180304_132027.dat')
-liste = dex.openBoxFile('FHD_JPG_VID_20180304_132027.dat')
-#liste = dex.openBoxFile('FHD_JPG_VID_20180304_131842.dat')
-#liste = dex.openBoxFile('FHD_JPG_VID_20180304_125923.dat')
+# Open the results from the Faster R-CNN and load them into a Python list
+IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_132027.dat')
+# liste = dex.openBoxFile('VID_20180304_131842.dat')
+# liste = dex.openBoxFile('VID_20180304_125923.dat')
+# liste = dex.openBoxFile('VID_20180304_132027.dat')
+# liste = dex.openBoxFile('FHD_JPG_VID_20180304_131842.dat')
+# liste = dex.openBoxFile('FHD_JPG_VID_20180304_125923.dat')
 
-#IMAGE_FOLDER = "Frames_VID_20180304_131842"
+# Define the folder where original images are located
 IMAGE_FOLDER = "Frames_VID_20180304_132027"
-#IMAGE_FOLDER = "Frames_VID_20180304_125923"
+# IMAGE_FOLDER = "Frames_VID_20180304_131842"
+# IMAGE_FOLDER = "Frames_VID_20180304_125923"
 
 
-# list of boxes to list of images with list of boxes
-liste = dex.predictOutputToList(liste)
+# Sort the list by grouping boxes which are located on the same frame
+IMAGE_LIST = dex.sort_and_group_list(IMAGE_LIST)
 
-liste = dex.dropBoxesWithLowConfidence(liste,0.4)
+# Delete all boxes with a confidence lower than 0.4
+IMAGE_LIST = dex.drop_boxes_with_low_confidence(IMAGE_LIST, 0.4)
 
-# clean from overlapping
-liste = dex.cleanListFromOverlappingBoxes(liste)
+# If two boxes mark the same wine, only one should be used
+IMAGE_LIST = dex.clean_list_from_overlapping_boxes(IMAGE_LIST)
 
-# add false to all because they are not predicted, and None because hey are not part of a chain
-#liste = dex.addValue_8_and_9_ToBox(liste)
+# Delete all boxes which are not in the center of the image --> not the row we are looking for
+IMAGE_LIST = dex.delete_not_centred_boxes(IMAGE_LIST)
 
-# delet all Boxes which are not in the center of the image
-liste = dex.deleteNotCentredBoxes(liste)
-
-# item counter
-counter = 0
+# initialise item counter an delete_box_list
+item_counter = 0
 delete_boxes_list = []
 
-# for every image
-for image in liste:
-    # you can't calculate a successor for the last image because it's the last
-    if (liste.index(image) == (len(liste) - 1)):
+# for each image find the successor for each image
+for image in IMAGE_LIST:
+
+    # you can't calculate a successor of the last image because it's the last image
+    if (IMAGE_LIST.index(image) == (len(IMAGE_LIST) - 1)):
         break
+
     # if its not the last, check each box
     for box in image:
 
         # if the box is already in a chain and is labeled you don't need check
         if (box[9] is not None):
             continue
-        # calculate all successors of this box and save them in a list
-        chain = dex.getSuccessorChain(liste, box)
 
-        # if the chain has no direkt successor, you can't predict an successor
-        if (len(chain) == 1):
+        # calculate all successors of this box and save them in a list --> chain
+        chain = dex.get_successor_chain(IMAGE_LIST, box)
+
+        # if the chain contains only one box, you can't predict an successor --> this
+        # box should be deleted
+        if (len(chain) <= 1):
             delete_boxes_list.append(box)
             continue
 
         # ++++PREDICTION PART++++
-        # we can't predict till the end, so we stop after the last X boxes in the chain are predicted
-        while (not dex.areLastChainItemsPredicted(chain)):
+        # we can't predict till the end, so we if the last 5 boxes in the chain are predicted
+        while (not dex.are_last_chain_items_predicted(chain)):
 
-            # get the mean movement of the cam, so we can predict where the next item should be
-            step = dex.meanXDistanceList(chain)
+            # get the mean movement/step of the camera, so we can predict where the next item should be
+            step = dex.mean_x_movement_in_chain(chain)
 
-            #get the last element of the chain
-            lastElement = chain[-1]
+            # get the last element of the chain
+            last_element = chain[-1]
 
             # predict ONE chain element with the "step" value and the last chain element
-            newListe = dex.appendListWithPredictedSuccessorValue(liste, lastElement, step)
+            new_liste = dex.append_list_with_predicted_successor_box(IMAGE_LIST, last_element, step)
 
-            # appendListWithPredictedValue() returns 'None' if the predicted box is out of the image
-            # or it trys to predict the successor of the last frame
-            if newListe is None:
+            # append_list_with_predicted_successor_box() returns 'None' if the predicted box
+            # is outside the image or it tries to predict the successor of the last frame
+            # e.g. --> image is 1920x1080 and the box should be at 1960 pixel
+            if new_liste is None:
                 break
+            # if not, overwrite the old list with the new one
             else:
-                liste = newListe
+                IMAGE_LIST = new_liste
 
-            # calculate the new chain with the predicted box
-            chain = dex.getSuccessorChain(liste, box)
+            # calculate the new chain with the predicted box added to the list
+            chain = dex.get_successor_chain(IMAGE_LIST, box)
 
         # we delete the last 3 predicted elements, because the could be to inaccurate
-        #liste = dex.deleteLastPredicted(chain, liste)
+        # liste = dex.deleteLastPredicted(chain, liste)
 
-        # give each unique item a ID
-        chain = dex.getSuccessorChain(liste, box)
-        liste = dex.setChainID(chain, liste, counter)
-        counter += 1
+        # a chain represent a unique element which is displayed on different frames
+        # to mark boxes with the same element all boxes in the chain get the same item_id
+        chain = dex.get_successor_chain(IMAGE_LIST, box)
+        IMAGE_LIST = dex.set_chain_id(chain, IMAGE_LIST, item_counter)
+        # increment the counter
+        item_counter += 1
 
-liste = dex.removeElementsFromList(liste, delete_boxes_list)
+# in the end all boxes with no successor get deleted
+IMAGE_LIST = dex.remove_elements_from_list(IMAGE_LIST, delete_boxes_list)
 
-disl = dex.getDisList(liste)
+# now each box has a item_id, so we can calculate the distance between
+# boxes and map them to positions
+position_list = dex.calculate_distance_and_map_to_positions(IMAGE_LIST)
 
-disl = dex.getMeanOfDisList(disl)
+# because each item(wine) is on multiple frames, each item has multiple positions
+# so we calculate the mean for each item position
+position_list = dex.get_mean_positions(position_list)
 
-disl = dex.addAttributesToDisList(disl,liste)
+# the position_list only contains the position, so we add attributes: class and item_id
+position_list = dex.add_attributes_to_position_list(position_list, IMAGE_LIST)
 
-disl.sort(key=lambda x: x[0])
+# sort the list ascending by position
+position_list.sort(key=lambda x: x[0])
 
-print(disl)
+# filter elements with the class 'wine'
+wine_position_list = dex.filter_position_list(position_list, "wine")
 
-# plot all points
-#dexDraw.plot(disl)
+q_25, q_75 = dex.get_quartiles(wine_position_list)
 
+lower_threshold, upper_threshold = dex.get_threshold(q_25, q_75)
+
+# identify wines where the distance is higher than usual --> outliers
+outliers = dex.identify_outliers(wine_position_list, upper_threshold)
+
+# build trace for element position
+trace_1 = dexDraw.get_plot_trace_for_positions(position_list)
+
+# append this trace with the outliers
+trace_list = dexDraw.get_plot_traces_for_outlier(position_list, outliers, trace_1)
+
+# display the plot
+dexDraw.plot_traces(trace_list)
 
 # display all images and save them
-#dexDraw.drawBoxesAndSaveIn4Threads(liste, IMAGE_FOLDER)
-
-print()
-print(dex.countItems(liste))
-print(dex.countInDisList(disl))
-
-q25,q75, wineList = dex.getQuartiles(disl)
-dif = q75 - q25
-lowerThreshold= q25 - 1.5*dif
-upperThreshold= q75 + 1.5*dif
-
-print(lowerThreshold)
-print(upperThreshold)
-print(wineList)
-
-wineList = list(filter(lambda x: x[2] < lowerThreshold, wineList))
-print(wineList)
-
-for item in wineList:
-    for i in disl:
-        if i[2] == item[0]:
-            firstItem = i
-        if i[2] == item[1]:
-            secondItem = i
-    newPos = int((firstItem[0]+secondItem[0])/2)
-    disl.remove(firstItem)
-    disl.remove(secondItem)
-    newItem = [newPos, "wine",firstItem[2]]
-    print(newItem)
-    disl.append(newItem)
-
-disl.sort(key=lambda x: x[0])
-dexDraw.plotLines(disl,15,dexDraw.plot(disl))
+# dexDraw.drawBoxesAndSaveIn4Threads(liste, IMAGE_FOLDER)
