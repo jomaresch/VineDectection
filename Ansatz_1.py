@@ -5,11 +5,12 @@ import dexUtilsDraw as dexDraw
 
 # Open the results from the Faster R-CNN and load them into a Python list
 IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_132027.dat')
-# liste = dex.openBoxFile('VID_20180304_131842.dat')
-# liste = dex.openBoxFile('VID_20180304_125923.dat')
-# liste = dex.openBoxFile('VID_20180304_132027.dat')
-# liste = dex.openBoxFile('FHD_JPG_VID_20180304_131842.dat')
-# liste = dex.openBoxFile('FHD_JPG_VID_20180304_125923.dat')
+IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180402_182434.dat')
+# IMAGE_LIST = dex.open_box_file('VID_20180304_131842.dat')
+# IMAGE_LIST = dex.open_box_file('VID_20180304_125923.dat')
+# IMAGE_LIST = dex.open_box_file('VID_20180304_132027.dat')
+IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_131842.dat')
+# IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_125923.dat')
 
 # Define the folder where original images are located
 IMAGE_FOLDER = "Frames_VID_20180304_132027"

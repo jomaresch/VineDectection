@@ -150,11 +150,12 @@ def get_plot_trace_for_positions(points):
 def get_plot_traces_for_outlier(points, outliers, trace_dots):
     points = list(filter(lambda x: x[1] == "wine", points))
     first_element_of_outlier_tupel = list(map(lambda x: x[0], outliers))
+    print(first_element_of_outlier_tupel)
     traces = []
     for i, point in enumerate(points):
         if (i == (len(points)-1)):
             break
-        if i in first_element_of_outlier_tupel:
+        if point in first_element_of_outlier_tupel:
             traces.append(Scatter3d(
                 x=[0,0],
                 y=[point[0], points[i+1][0]],

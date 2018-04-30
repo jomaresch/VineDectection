@@ -126,7 +126,7 @@ def meanDistance(box_1, box_2):
     return mySum / 4
 
 
-def mean_x_distance(box_1, box_2):
+def mean_x_distance_with_abs(box_1, box_2):
     m1 = box_1[4] + box_1[5]
     m1 = round(m1 / 2)
     m2 = box_2[4] + box_2[5]
@@ -221,7 +221,7 @@ def getMeanStep(list, image_name):
         if (element[0][0] == image_name):
             templist.append(element)
     for element in templist:
-        dis.append(mean_x_distance(element[0], element[1]))
+        dis.append(mean_x_distance_with_abs(element[0], element[1]))
 
     if (len(dis) == 0):
         return 0.0
@@ -283,7 +283,7 @@ def createMatchList(list):
             saved_inds = []
             for index_box_prev, box_prev in enumerate(list[index_image - 1]):
                 if (box_now[3] == box_prev[3]):
-                    distances.append(mean_x_distance(box_now, box_prev))
+                    distances.append(mean_x_distance_with_abs(box_now, box_prev))
                     saved_inds.append(index_box_prev)
             if (len(distances) == 0):
                 continue
@@ -378,7 +378,7 @@ def get_successor_element(element, list, index):
         # if boxes have the same class and box has no ItemID
         if (box[3] == element[3] and box[9] is None):
             # add the distance to the list
-            distances.append(mean_x_distance(box, element))
+            distances.append(mean_x_distance_with_abs(box, element))
             # add overlaps to the list
             overlaps.append(get_overlap(box, element))
             boxes.append(box)
@@ -404,7 +404,7 @@ def mean_x_movement_in_chain(chain):
         if (index + 1 == len(chain)):
             continue
         else:
-            distances.append(mean_x_distance(box, chain[index + 1]))
+            distances.append(mean_x_distance_without_abs(box, chain[index + 1]))
 
     # return mean of distances with numpy
     return int(round(np.mean(distances)))
@@ -427,8 +427,8 @@ def append_list_with_predicted_successor_box(list, previous_Element, step):
     v2 = previous_Element[2]
     v3 = previous_Element[3]
     # adjust the x values with the step
-    v4 = previous_Element[4] - step
-    v5 = previous_Element[5] - step
+    v4 = previous_Element[4] + step
+    v5 = previous_Element[5] + step
     v6 = previous_Element[6]
     v7 = previous_Element[7]
     if (v4 <= 0):
@@ -633,7 +633,7 @@ def getAllDistancesInList(list):
             continue
         else:
             for c in combinations:
-                distances.append([c[0][9], c[1][9], mean_x_distance(c[0], c[1])])
+                distances.append([c[0][9], c[1][9], mean_x_distance_with_abs(c[0], c[1])])
 
     return distances
 
@@ -771,18 +771,19 @@ def add_attributes_to_position_list(distance_list, list):
 
     return_list = merge_close_items(return_list, lower(return_list))
 
+    # make all position positive
+    return_list = [[abs(x[0]),x[1],x[1]] for x in return_list]
+
     return return_list
 
 
 def get_quartiles(list1):
     list2 = []
-    print(list1)
     for index, item, in enumerate(list1):
         # if not the last image
         if (index < (len(list1) - 1)):
             list2.append([item[2],list1[index + 1][2],list1[index + 1][0] - item[0]])
-    print(list2)
-    return np.percentile(np.array([x[2] for x in list2]), 25), np.percentile(np.array([x[2] for x in list2]), 75)
+    return np.percentile(np.array([x[2] for x in list2]), 25), np.percentile(np.array([x[2] for x in list2]), 75), np.mean([x[2] for x in list2])
 
 
 def lower(list):
@@ -795,7 +796,7 @@ def filter_position_list(pos_list, my_filter):
 
 def get_threshold(q_25, q_75):
     dif = q_75 - q_25
-    return q_25 - (1.5 * dif), q_75 + (1.5 * dif)
+    return q_25 - (1.5 * dif), q_75 + (1 * dif)
 
 
 def identify_outliers(wine_position_list, upper_threshold):

@@ -1,16 +1,20 @@
 import dexUtils as dex
 import dexUtilsDraw as dexDraw
+import time
 
 # Open the results from the Faster R-CNN and load them into a Python list
-IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_132027.dat')
-# liste = dex.openBoxFile('VID_20180304_131842.dat')
-# liste = dex.openBoxFile('VID_20180304_125923.dat')
-# liste = dex.openBoxFile('VID_20180304_132027.dat')
-# liste = dex.openBoxFile('FHD_JPG_VID_20180304_131842.dat')
-# liste = dex.openBoxFile('FHD_JPG_VID_20180304_125923.dat')
+# IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_132027.dat')
+# IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180402_182434.dat')
+# IMAGE_LIST = dex.open_box_file('VID_20180304_131842.dat')
+# IMAGE_LIST = dex.open_box_file('VID_20180304_125923.dat')
+# IMAGE_LIST = dex.open_box_file('VID_20180304_132027.dat')
+# IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_131842.dat')
+# IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_125923.dat')
+IMAGE_LIST = dex.open_box_file('FHD_JPG_VID_20180304_132119.dat')
 
 # Define the folder where original images are located
-IMAGE_FOLDER = "Frames_VID_20180304_132027"
+# IMAGE_FOLDER = "Frames_VID_20180304_132027"
+IMAGE_FOLDER = "Frames_VID_20180402_182434"
 # IMAGE_FOLDER = "Frames_VID_20180304_131842"
 # IMAGE_FOLDER = "Frames_VID_20180304_125923"
 
@@ -29,8 +33,11 @@ IMAGE_LIST = dex.delete_not_centred_boxes(IMAGE_LIST)
 
 # initialise item counter an delete_box_list
 item_counter = 0
+vine_counter = 0
+
 delete_boxes_list = []
 
+start_time = time.time()
 # for each image find the successor for each image
 for image in IMAGE_LIST:
 
@@ -54,6 +61,8 @@ for image in IMAGE_LIST:
             delete_boxes_list.append(box)
             continue
 
+        if(box[3] == 'wine'):
+            vine_counter += 1
         # ++++PREDICTION PART++++
         # we can't predict till the end, so we if the last 5 boxes in the chain are predicted
         while (not dex.are_last_chain_items_predicted(chain)):
@@ -92,6 +101,10 @@ for image in IMAGE_LIST:
 # in the end all boxes with no successor get deleted
 IMAGE_LIST = dex.remove_elements_from_list(IMAGE_LIST, delete_boxes_list)
 
+end_time = time.time()
+print("Counted vine: " +  str(vine_counter))
+print("Time to count Items: " + str(end_time-start_time))
+
 item_counter = dex.count_wine_with_vertical_line(IMAGE_LIST, 0.5)
 
 print(item_counter)
@@ -113,12 +126,13 @@ position_list.sort(key=lambda x: x[0])
 # filter elements with the class 'wine'
 wine_position_list = dex.filter_position_list(position_list, "wine")
 
-q_25, q_75 = dex.get_quartiles(wine_position_list)
+q_25, q_75, dis_mean = dex.get_quartiles(wine_position_list)
 
 lower_threshold, upper_threshold = dex.get_threshold(q_25, q_75)
 
 # identify wines where the distance is higher than usual --> outliers
-outliers = dex.identify_outliers(wine_position_list, upper_threshold)
+outliers = dex.identify_outliers(wine_position_list, dis_mean*1.5)
+print(outliers)
 
 # build trace for element position
 trace_1 = dexDraw.get_plot_trace_for_positions(position_list)
@@ -130,4 +144,4 @@ trace_list = dexDraw.get_plot_traces_for_outlier(position_list, outliers, trace_
 dexDraw.plot_traces(trace_list)
 
 # display all images and save them
-# dexDraw.drawBoxesAndSaveIn4Threads(liste, IMAGE_FOLDER)
+#dexDraw.drawBoxesAndSaveIn4Threads(IMAGE_LIST, IMAGE_FOLDER)
