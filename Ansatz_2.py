@@ -92,6 +92,10 @@ for image in IMAGE_LIST:
 # in the end all boxes with no successor get deleted
 IMAGE_LIST = dex.remove_elements_from_list(IMAGE_LIST, delete_boxes_list)
 
+item_counter = dex.count_wine_with_vertical_line(IMAGE_LIST, 0.5)
+
+print(item_counter)
+
 # now each box has a item_id, so we can calculate the distance between
 # boxes and map them to positions
 position_list = dex.calculate_distance_and_map_to_positions(IMAGE_LIST)

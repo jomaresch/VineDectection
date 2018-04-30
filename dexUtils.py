@@ -809,6 +809,42 @@ def identify_outliers(wine_position_list, upper_threshold):
 
     return outliers
 
+def count_wine_with_vertical_line(list, v_line):
+    wine_count = 0
+    prev_box_count = 0
+    this_box_count = 0
+    for image in list:
+        this_box_count = count_boxes_at_vline(image, v_line)
+        div = prev_box_count - this_box_count
+        if(div < 0):
+            wine_count += abs(div)
+        prev_box_count = this_box_count
+
+    wine_count += get_wine_first_and_last(list, v_line)
+
+    return wine_count
+
+def count_boxes_at_vline(image, v_line):
+    box_c = 0
+    half_w = v_line * image[0][1]
+    for box in image:
+        if(box[4] < half_w and half_w < box[5] and box[3] == "wine"):
+            box_c += 1
+    return box_c
+
+def get_wine_first_and_last(list, v_line):
+    first_frame = list[0]
+    last_frame = list[len(list)-1]
+    half_w = v_line * first_frame[0][1]
+    box_c = 0
+    for box in first_frame:
+        if (half_w > box[5] and box[3] == "wine"):
+            box_c += 1
+    for box in last_frame:
+        if (half_w < box[4] and box[3] == "wine"):
+            box_c += 1
+    return box_c
+
 
 #       0   filename
 #       1   width
