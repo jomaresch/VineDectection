@@ -84,7 +84,7 @@ def drawBoxesAndSave(list, folder):
         print(image)
         drawVerticalLines(draw_box(image, folder)).save('imagesnew/' + image[0][0])
 
-def drawBoxesAndSaveIn4Threads(list, folder):
+def draw_boxes_and_save_in_4_threads(list, folder):
     length = len(list)
     half = int(length/2)
     quarter = int(half/2)

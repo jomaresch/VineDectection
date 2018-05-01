@@ -32,7 +32,7 @@ IMAGE_LIST = dex.delete_not_centred_boxes(IMAGE_LIST)
 
 start = time.time()
 # initialise item counter an delete_box_list
-item_counter = dex.count_wine_with_vertical_line(IMAGE_LIST, 0.5)
+item_counter = dex.count_vine_with_vertical_line(IMAGE_LIST, 0.5)
 end = time.time()
 print(end-start)
 

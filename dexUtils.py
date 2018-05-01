@@ -810,7 +810,7 @@ def identify_outliers(wine_position_list, upper_threshold):
 
     return outliers
 
-def count_wine_with_vertical_line(list, v_line):
+def count_vine_with_vertical_line(list, v_line):
     wine_count = 0
     prev_box_count = 0
     this_box_count = 0

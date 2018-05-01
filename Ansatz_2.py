@@ -105,7 +105,7 @@ end_time = time.time()
 print("Counted vine: " +  str(vine_counter))
 print("Time to count Items: " + str(end_time-start_time))
 
-item_counter = dex.count_wine_with_vertical_line(IMAGE_LIST, 0.5)
+item_counter = dex.count_vine_with_vertical_line(IMAGE_LIST, 0.5)
 
 print(item_counter)
 
@@ -144,4 +144,4 @@ trace_list = dexDraw.get_plot_traces_for_outlier(position_list, outliers, trace_
 dexDraw.plot_traces(trace_list)
 
 # display all images and save them
-#dexDraw.drawBoxesAndSaveIn4Threads(IMAGE_LIST, IMAGE_FOLDER)
+dexDraw.draw_boxes_and_save_in_4_threads(IMAGE_LIST, IMAGE_FOLDER)
